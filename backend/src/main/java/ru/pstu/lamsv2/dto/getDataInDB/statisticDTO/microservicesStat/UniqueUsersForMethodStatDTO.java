@@ -18,6 +18,10 @@ public class UniqueUsersForMethodStatDTO
 {
     private LocalDateTime date;
 
+    private Long microserviceId;
+
+    private Long actionMethodId;
+
     private String microserviceName;
 
     private String actionName;

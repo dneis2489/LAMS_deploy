@@ -1,6 +1,8 @@
 package ru.pstu.lamsv2.services.predictServices;
 
 import org.springframework.stereotype.Service;
+import ru.pstu.lamsv2.dto.getDataInDB.predictDTO.UniqueUserMethodForecastDTO;
+import ru.pstu.lamsv2.dto.getDataInDB.statisticDTO.microservicesStat.UniqueUsersForMethodStatDTO;
 import ru.pstu.lamsv2.dto.getDataInDB.statisticDTO.totalStat.UniqueUsersStatDTO;
 import ru.pstu.lamsv2.dto.application.predictDTO.DataFormatForPredictDTO;
 import ru.pstu.lamsv2.dto.getDataInDB.predictDTO.DataFormatFromPredictDTO;
@@ -15,7 +17,10 @@ import ru.pstu.lamsv2.subMethods.convertData.convertForPredict.ConvertDataToPred
 import ru.pstu.lamsv2.subMethods.methodsForEnums.PredictReriodForPredict;
 import ru.pstu.lamsv2.subMethods.methodsForEnums.SeasonPeriodForPredict;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
     Сервис для реализации методов обновления прогноза по количеству уникальных пользователей системы. Включает в себя методы:
@@ -97,6 +102,16 @@ public class PredictUniqueUserService implements PredictUniqueUserServiceInterfa
         );
     }
 
+    @Override
+    public List<UniqueUserMethodForecastDTO> predictGetUniqueUserForMethodsWithHour(int hour)
+    {
+        return predictGetUniqueUserForMethods(
+                statGetUniqueUserRepository.getUniqueUserForMethodsWithHour(hour),
+                AggregationType.HOURLY,
+                "predictGetUniqueUserForMethodsWithHour"
+        );
+    }
+
     //Прогнозирование количества уникальных пользователей с градацией по дням
     @Override
     public List<DataFormatFromPredictDTO> predictGetUniqueUserWithDay(int days)
@@ -143,6 +158,16 @@ public class PredictUniqueUserService implements PredictUniqueUserServiceInterfa
                 data,
                 PredictReriodForPredict.getPredictReriod(AggregationType.DAILY),
                 AggregationType.DAILY
+        );
+    }
+
+    @Override
+    public List<UniqueUserMethodForecastDTO> predictGetUniqueUserForMethodsWithDay(int days)
+    {
+        return predictGetUniqueUserForMethods(
+                statGetUniqueUserRepository.getUniqueUserForMethodsWithDay(days),
+                AggregationType.DAILY,
+                "predictGetUniqueUserForMethodsWithDay"
         );
     }
 
@@ -193,5 +218,106 @@ public class PredictUniqueUserService implements PredictUniqueUserServiceInterfa
                 PredictReriodForPredict.getPredictReriod(AggregationType.MONTHLY),
                 AggregationType.MONTHLY
         );
+    }
+
+    @Override
+    public List<UniqueUserMethodForecastDTO> predictGetUniqueUserForMethodsWithMonth(int month)
+    {
+        return predictGetUniqueUserForMethods(
+                statGetUniqueUserRepository.getUniqueUserForMethodsWithMonth(month),
+                AggregationType.MONTHLY,
+                "predictGetUniqueUserForMethodsWithMonth"
+        );
+    }
+
+    private List<UniqueUserMethodForecastDTO> predictGetUniqueUserForMethods(
+            List<UniqueUsersForMethodStatDTO> rows,
+            AggregationType aggregationType,
+            String modelPrefix
+    )
+    {
+        if (rows == null || rows.isEmpty())
+        {
+            return List.of();
+        }
+
+        Map<UniqueUserMethodKey, List<UniqueUsersForMethodStatDTO>> rowsByMethod = rows.stream()
+                .filter(row -> row.getMicroserviceId() != null && row.getActionMethodId() != null)
+                .collect(Collectors.groupingBy(row ->
+                        new UniqueUserMethodKey(row.getMicroserviceId(), row.getActionMethodId())
+                ));
+
+        return rowsByMethod.entrySet().stream()
+                .map(entry -> {
+                    UniqueUserMethodKey key = entry.getKey();
+                    String modelName = modelPrefix + "-" + key.microserviceId() + "-" + key.actionMethodId();
+                    List<UniqueUsersForMethodStatDTO> actualRows = entry.getValue().stream()
+                            .filter(row -> row.getCount() != null && row.getCount() > 0)
+                            .sorted(Comparator.comparing(UniqueUsersForMethodStatDTO::getDate))
+                            .toList();
+
+                    List<DataFormatForPredictDTO> data = convertDataToPredict.convertData(
+                            actualRows,
+                            UniqueUsersForMethodStatDTO::getDate,
+                            UniqueUsersForMethodStatDTO::getCount,
+                            UniqueUsersForMethodStatDTO::getPredict
+                    );
+
+                    if (data.isEmpty())
+                    {
+                        return new UniqueUserMethodForecastDTO(
+                                key.microserviceId(),
+                                key.actionMethodId(),
+                                List.of()
+                        );
+                    }
+
+                    if (!predictMethodInterface.modelExists(modelName))
+                    {
+                        predictMethodInterface.train(
+                                modelName,
+                                data,
+                                SeasonPeriodForPredict.getSeasonPeriod(aggregationType),
+                                "add"
+                        );
+                    }
+
+                    double error = checkAccuracy.checkAccuracy(data, TypePredictAccuracy.RMSE);
+
+                    if (error > 0.15)
+                    {
+                        optimizer.optimize(
+                                data,
+                                SeasonPeriodForPredict.getSeasonPeriod(aggregationType),
+                                "add",
+                                aggregationType,
+                                TypePredictAccuracy.RMSE
+                        );
+
+                        predictMethodInterface.train(
+                                modelName,
+                                data,
+                                SeasonPeriodForPredict.getSeasonPeriod(aggregationType),
+                                "add"
+                        );
+                    }
+
+                    return new UniqueUserMethodForecastDTO(
+                            key.microserviceId(),
+                            key.actionMethodId(),
+                            predictMethodInterface.predict(
+                                    modelName,
+                                    data,
+                                    PredictReriodForPredict.getPredictReriod(aggregationType),
+                                    aggregationType
+                            )
+                    );
+                })
+                .filter(forecast -> forecast.getForecastList() != null && !forecast.getForecastList().isEmpty())
+                .toList();
+    }
+
+    private record UniqueUserMethodKey(Long microserviceId, Long actionMethodId)
+    {
     }
 }

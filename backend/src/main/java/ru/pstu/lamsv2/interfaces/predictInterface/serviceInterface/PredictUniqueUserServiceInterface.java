@@ -1,6 +1,7 @@
 package ru.pstu.lamsv2.interfaces.predictInterface.serviceInterface;
 
 import ru.pstu.lamsv2.dto.getDataInDB.predictDTO.DataFormatFromPredictDTO;
+import ru.pstu.lamsv2.dto.getDataInDB.predictDTO.UniqueUserMethodForecastDTO;
 
 import java.util.List;
 
@@ -17,9 +18,15 @@ public interface PredictUniqueUserServiceInterface
     //Получение уникальных пользователей с агрегацией по часам
     List<DataFormatFromPredictDTO> predictGetUniqueUserWithHour(int hour);
 
+    List<UniqueUserMethodForecastDTO> predictGetUniqueUserForMethodsWithHour(int hour);
+
     //Получение уникальных пользователей с агрегацией по дням
     List<DataFormatFromPredictDTO> predictGetUniqueUserWithDay(int days);
 
+    List<UniqueUserMethodForecastDTO> predictGetUniqueUserForMethodsWithDay(int days);
+
     //Получение уникальных пользователей с агрегацией по месяцам
     List<DataFormatFromPredictDTO> predictGetUniqueUserWithMonth(int month);
+
+    List<UniqueUserMethodForecastDTO> predictGetUniqueUserForMethodsWithMonth(int month);
 }

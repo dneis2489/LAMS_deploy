@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.pstu.lamsv2.dto.getDataInDB.predictDTO.DataFormatFromPredictDTO;
+import ru.pstu.lamsv2.dto.getDataInDB.predictDTO.UniqueUserMethodForecastDTO;
 import ru.pstu.lamsv2.enums.AggregationType;
 import ru.pstu.lamsv2.enums.NotificationCategory;
 import ru.pstu.lamsv2.interfaces.notificationInterfaces.NotificationServiceInterface;
@@ -188,9 +189,14 @@ public class RunPredictWithCron
     )
     public void updateUniqueUserWithHour()
     {
+        int length = LengthPeriodPredictForAggregation.getLength(AggregationType.HOURLY);
         List<DataFormatFromPredictDTO> forecastList = predictUniqueUserService.predictGetUniqueUserWithHour(
-                LengthPeriodPredictForAggregation.getLength(AggregationType.HOURLY));
+                length);
         predictUniqueUserRepoInterface.updateUniqueUserWithHourInDB(forecastList);
+
+        List<UniqueUserMethodForecastDTO> methodForecastList =
+                predictUniqueUserService.predictGetUniqueUserForMethodsWithHour(length);
+        predictUniqueUserRepoInterface.updateUniqueUserForMethodsWithHourInDB(methodForecastList);
     }
 
     //Количество уникальных пользователей в системе с агрегацией по дням
@@ -200,9 +206,14 @@ public class RunPredictWithCron
     )
     public void updateUniqueUserWithDay()
     {
+        int length = LengthPeriodPredictForAggregation.getLength(AggregationType.DAILY);
         List<DataFormatFromPredictDTO> forecastList = predictUniqueUserService.predictGetUniqueUserWithDay(
-                LengthPeriodPredictForAggregation.getLength(AggregationType.DAILY));
+                length);
         predictUniqueUserRepoInterface.updateUniqueUserWithDayInDB(forecastList);
+
+        List<UniqueUserMethodForecastDTO> methodForecastList =
+                predictUniqueUserService.predictGetUniqueUserForMethodsWithDay(length);
+        predictUniqueUserRepoInterface.updateUniqueUserForMethodsWithDayInDB(methodForecastList);
     }
 
     //Количество уникальных пользователей в системе с агрегацией по месяцам
@@ -212,9 +223,14 @@ public class RunPredictWithCron
     )
     public void updateUniqueUserWithMonth()
     {
+        int length = LengthPeriodPredictForAggregation.getLength(AggregationType.MONTHLY);
         List<DataFormatFromPredictDTO> forecastList = predictUniqueUserService.predictGetUniqueUserWithMonth(
-                LengthPeriodPredictForAggregation.getLength(AggregationType.MONTHLY));
+                length);
         predictUniqueUserRepoInterface.updateUniqueUserWithMonthInDB(forecastList);
+
+        List<UniqueUserMethodForecastDTO> methodForecastList =
+                predictUniqueUserService.predictGetUniqueUserForMethodsWithMonth(length);
+        predictUniqueUserRepoInterface.updateUniqueUserForMethodsWithMonthInDB(methodForecastList);
     }
 
     private void notifyHighErrorForecast(Map<Integer, List<DataFormatFromPredictDTO>> forecastList)

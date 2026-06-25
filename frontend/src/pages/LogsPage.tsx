@@ -1,6 +1,7 @@
-import { Ban, CalendarDays, ChevronLeft, ChevronRight, Eye, Filter, RefreshCcw, Search, X } from "lucide-react";
+import { Ban, ChevronLeft, ChevronRight, Eye, Filter, RefreshCcw, Search, X } from "lucide-react";
 import { LogDetailDrawer } from "../components/logs/LogDetailDrawer";
 import { Alert } from "../components/ui/Alert";
+import { DatePickerField } from "../components/ui/DatePickerField";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingBlock } from "../components/ui/LoadingBlock";
 import { MultiSelectDropdown } from "../components/ui/MultiSelectDropdown";
@@ -12,13 +13,6 @@ import { statusTone } from "../utils/status";
 export function LogsPage() {
   const logs = useLogs();
   const toNumbers = (value: Array<string | number>) => value.map(Number);
-  const openDatePicker = (input: HTMLInputElement) => {
-    try {
-      input.showPicker?.();
-    } catch {
-      input.focus();
-    }
-  };
 
   return (
     <div className="view-stack">
@@ -78,41 +72,17 @@ export function LogsPage() {
               onChange={(value) => logs.updateFilter("requestStatus", toNumbers(value))}
             />
 
-            <label className="field compact-field date-field">
-              <span>Дата от</span>
-              <span className="date-input-control">
-                <CalendarDays size={16} aria-hidden="true" />
-                <input
-                  type="date"
-                  value={logs.filters.startDate}
-                  onClick={(event) => openDatePicker(event.currentTarget)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      openDatePicker(event.currentTarget);
-                    }
-                  }}
-                  onChange={(event) => logs.updateFilter("startDate", event.target.value)}
-                />
-              </span>
-            </label>
+            <DatePickerField
+              label="Дата от"
+              value={logs.filters.startDate ?? ""}
+              onChange={(value) => logs.updateFilter("startDate", value)}
+            />
 
-            <label className="field compact-field date-field">
-              <span>Дата до</span>
-              <span className="date-input-control">
-                <CalendarDays size={16} aria-hidden="true" />
-                <input
-                  type="date"
-                  value={logs.filters.endDate}
-                  onClick={(event) => openDatePicker(event.currentTarget)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      openDatePicker(event.currentTarget);
-                    }
-                  }}
-                  onChange={(event) => logs.updateFilter("endDate", event.target.value)}
-                />
-              </span>
-            </label>
+            <DatePickerField
+              label="Дата до"
+              value={logs.filters.endDate ?? ""}
+              onChange={(value) => logs.updateFilter("endDate", value)}
+            />
 
             <button
               type="button"

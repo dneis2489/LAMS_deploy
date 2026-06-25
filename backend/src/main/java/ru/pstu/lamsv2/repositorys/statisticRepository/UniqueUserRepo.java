@@ -40,6 +40,8 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
         String sql = """
                     SELECT
                          	s.stat_hour,
+                         	s.microservice_id,
+                         	s.action_method_id,
                          	m.microservice_name,
                          	am.action_rus,
                          	s.unique_users_count,
@@ -55,13 +57,15 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
         return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) ->
                 new UniqueUsersForMethodStatDTO(
                         rs.getTimestamp("stat_hour").toLocalDateTime(),
+                        getNullableLong(rs, "microservice_id"),
+                        getNullableLong(rs, "action_method_id"),
                         rs.getString("microservice_name"),
                         rs.getString("action_rus"),
                         getNullableLong(rs, "unique_users_count"),
                         rs.getArray("unique_users") == null
                                 ? List.of()
                                 : Arrays.asList((String[]) rs.getArray("unique_users").getArray()),
-                        rs.getLong("predict")
+                        getNullableDouble(rs, "predict")
                 ));
     }
 
@@ -75,6 +79,8 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
         String sql = """
                     SELECT
                          	s.stat_day,
+                         	s.microservice_id,
+                         	s.action_method_id,
                          	m.microservice_name,
                          	am.action_rus,
                          	s.unique_users_count,
@@ -90,13 +96,15 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
         return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) ->
                 new UniqueUsersForMethodStatDTO(
                         rs.getTimestamp("stat_day").toLocalDateTime(),
+                        getNullableLong(rs, "microservice_id"),
+                        getNullableLong(rs, "action_method_id"),
                         rs.getString("microservice_name"),
                         rs.getString("action_rus"),
                         getNullableLong(rs, "unique_users_count"),
                         rs.getArray("unique_users") == null
                                 ? List.of()
                                 : Arrays.asList((String[]) rs.getArray("unique_users").getArray()),
-                        rs.getLong("predict")
+                        getNullableDouble(rs, "predict")
                 ));
     }
 
@@ -110,6 +118,8 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
         String sql = """
                     SELECT
                          	s.stat_month,
+                         	s.microservice_id,
+                         	s.action_method_id,
                          	m.microservice_name,
                          	am.action_rus,
                          	s.unique_users_count,
@@ -125,13 +135,15 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
         return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) ->
                 new UniqueUsersForMethodStatDTO(
                         rs.getTimestamp("stat_month").toLocalDateTime(),
+                        getNullableLong(rs, "microservice_id"),
+                        getNullableLong(rs, "action_method_id"),
                         rs.getString("microservice_name"),
                         rs.getString("action_rus"),
                         getNullableLong(rs, "unique_users_count"),
                         rs.getArray("unique_users") == null
                                 ? List.of()
                                 : Arrays.asList((String[]) rs.getArray("unique_users").getArray()),
-                        rs.getLong("predict")
+                        getNullableDouble(rs, "predict")
                 ));
     }
 
@@ -154,7 +166,7 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
                         rs.getLong("id"),
                         rs.getTimestamp("stat_hour").toLocalDateTime(),
                         getNullableLong(rs, "unique_users_count"),
-                        rs.getLong("predict"),
+                        getNullableDouble(rs, "predict"),
                         rs.getArray("unique_users") == null
                                 ? List.of()
                                 : Arrays.asList((String[]) rs.getArray("unique_users").getArray())
@@ -180,7 +192,7 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
                         rs.getLong("id"),
                         rs.getTimestamp("stat_day").toLocalDateTime(),
                         getNullableLong(rs, "unique_users_count"),
-                        rs.getLong("predict"),
+                        getNullableDouble(rs, "predict"),
                         rs.getArray("unique_users") == null
                                 ? List.of()
                                 : Arrays.asList((String[]) rs.getArray("unique_users").getArray())
@@ -206,7 +218,7 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
                         rs.getLong("id"),
                         rs.getTimestamp("stat_month").toLocalDateTime(),
                         getNullableLong(rs, "unique_users_count"),
-                        rs.getLong("predict"),
+                        getNullableDouble(rs, "predict"),
                         rs.getArray("unique_users") == null
                                 ? List.of()
                                 : Arrays.asList((String[]) rs.getArray("unique_users").getArray())
@@ -227,5 +239,22 @@ public class UniqueUserRepo implements StatGetUniqueUserRepoInterface
         }
 
         return Long.valueOf(value.toString());
+    }
+
+    private static double getNullableDouble(ResultSet rs, String columnName) throws SQLException
+    {
+        Object value = rs.getObject(columnName);
+
+        if (value == null)
+        {
+            return 0;
+        }
+
+        if (value instanceof Number number)
+        {
+            return number.doubleValue();
+        }
+
+        return Double.parseDouble(value.toString());
     }
 }
