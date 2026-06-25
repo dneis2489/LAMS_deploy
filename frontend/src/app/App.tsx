@@ -20,9 +20,36 @@ const UsersAdminPage = lazy(() =>
   import("../pages/UsersAdminPage").then((module) => ({ default: module.UsersAdminPage }))
 );
 
+const sectionPaths: Record<SectionId, string> = {
+  logs: "/logs",
+  statistics: "/statistics",
+  risks: "/risks",
+  activity: "/activity",
+  notifications: "/notifications",
+  users: "/users"
+};
+
+function normalizePathname(pathname: string) {
+  const path = pathname.replace(/\/+$/, "");
+  return path || "/";
+}
+
 function sectionFromUrl(): SectionId {
-  const hash = window.location.hash.replace(/^#/, "");
-  return navigationItems.some((item) => item.id === hash) ? (hash as SectionId) : "logs";
+  const pathname = normalizePathname(window.location.pathname);
+  const sectionByPath = navigationItems.find((item) => sectionPaths[item.id] === pathname)?.id;
+
+  if (sectionByPath) {
+    return sectionByPath;
+  }
+
+  const legacyHash = window.location.hash.replace(/^#/, "");
+  const sectionByHash = navigationItems.find((item) => item.id === legacyHash)?.id;
+
+  return sectionByHash ?? "logs";
+}
+
+function replaceUrlWithSection(section: SectionId) {
+  window.history.replaceState({ section }, "", sectionPaths[section]);
 }
 
 function App() {
@@ -39,8 +66,9 @@ function App() {
       setActiveSection(sectionFromUrl());
     }
 
-    if (!navigationItems.some((item) => `#${item.id}` === window.location.hash)) {
-      window.history.replaceState({ section: "logs" }, "", "#logs");
+    const section = sectionFromUrl();
+    if (normalizePathname(window.location.pathname) !== sectionPaths[section] || window.location.hash) {
+      replaceUrlWithSection(section);
     }
 
     window.addEventListener("popstate", syncSectionWithUrl);
@@ -53,14 +81,14 @@ function App() {
 
   useEffect(() => {
     if (session && activeSection === "users" && !isSuperAdmin) {
-      window.history.replaceState({ section: "logs" }, "", "#logs");
+      replaceUrlWithSection("logs");
       setActiveSection("logs");
     }
   }, [activeSection, isSuperAdmin, session]);
 
   function navigate(section: SectionId) {
-    if (window.location.hash !== `#${section}`) {
-      window.history.pushState({ section }, "", `#${section}`);
+    if (normalizePathname(window.location.pathname) !== sectionPaths[section]) {
+      window.history.pushState({ section }, "", sectionPaths[section]);
     }
     setActiveSection(section);
   }

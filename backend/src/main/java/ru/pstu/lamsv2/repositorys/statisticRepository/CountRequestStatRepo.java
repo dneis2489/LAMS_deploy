@@ -274,6 +274,18 @@ public class CountRequestStatRepo implements StatGetCountRequestRepoInterface
     }
     private static Long getNullableLong(ResultSet rs, String columnName) throws SQLException
     {
-        return rs.getObject(columnName, Long.class);
+        Object value = rs.getObject(columnName);
+
+        if (value == null)
+        {
+            return null;
+        }
+
+        if (value instanceof Number number)
+        {
+            return number.longValue();
+        }
+
+        return Long.valueOf(value.toString());
     }
 }
