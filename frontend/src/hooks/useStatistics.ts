@@ -4,6 +4,11 @@ import type { MethodStatisticDTO, StatisticMetric, StatisticPeriod } from "../ty
 import { buildMethodChart, buildTotalChart } from "../utils/charts";
 import { errorMessage } from "../utils/format";
 
+const statisticsTextCollator = new Intl.Collator("ru-RU", {
+  numeric: true,
+  sensitivity: "base"
+});
+
 export function useStatistics() {
   const [metric, setMetric] = useState<StatisticMetric>("count");
   const [period, setPeriod] = useState<StatisticPeriod>("day");
@@ -48,20 +53,33 @@ export function useStatistics() {
     };
   }, [metric, period, reloadKey]);
 
+  const sortedMethodRows = useMemo(
+    () =>
+      methodRows
+        .map((item) => ({
+          ...item,
+          actionList: [...item.actionList].sort((left, right) =>
+            statisticsTextCollator.compare(left.action, right.action)
+          )
+        }))
+        .sort((left, right) => statisticsTextCollator.compare(left.microserviceName, right.microserviceName)),
+    [methodRows]
+  );
+
   useEffect(() => {
-    if (methodRows.length === 0) {
+    if (sortedMethodRows.length === 0) {
       setSelectedMicroservice("");
       return;
     }
 
-    if (!methodRows.some((item) => item.microserviceName === selectedMicroservice)) {
-      setSelectedMicroservice(methodRows[0].microserviceName);
+    if (!sortedMethodRows.some((item) => item.microserviceName === selectedMicroservice)) {
+      setSelectedMicroservice(sortedMethodRows[0].microserviceName);
     }
-  }, [methodRows, selectedMicroservice]);
+  }, [sortedMethodRows, selectedMicroservice]);
 
   const selectedMicroserviceData = useMemo(
-    () => methodRows.find((item) => item.microserviceName === selectedMicroservice),
-    [methodRows, selectedMicroservice]
+    () => sortedMethodRows.find((item) => item.microserviceName === selectedMicroservice),
+    [sortedMethodRows, selectedMicroservice]
   );
 
   useEffect(() => {
@@ -128,7 +146,7 @@ export function useStatistics() {
   return {
     metric,
     period,
-    methodRows,
+    methodRows: sortedMethodRows,
     selectedMicroservice,
     selectedAction,
     selectedTotalStatus,
@@ -139,7 +157,7 @@ export function useStatistics() {
     methodStatusOptions,
     totalChart,
     methodChart,
-    methodCount: methodRows.reduce((count, item) => count + item.actionList.length, 0),
+    methodCount: sortedMethodRows.reduce((count, item) => count + item.actionList.length, 0),
     loading,
     error,
     setMetric,

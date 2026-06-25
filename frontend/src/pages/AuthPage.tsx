@@ -5,16 +5,33 @@ import { Alert } from "../components/ui/Alert";
 import { PasswordField } from "../components/ui/PasswordField";
 import { errorMessage } from "../utils/format";
 
+type AuthField = "email" | "password" | "";
+
 export function AuthPage({ onAuth }: { onAuth: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emptyField, setEmptyField] = useState<AuthField>("");
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+
+    if (!email.trim()) {
+      setEmptyField("email");
+      setError("");
+      return;
+    }
+
+    if (!password.trim()) {
+      setEmptyField("password");
+      setError("");
+      return;
+    }
+
     setLoading(true);
     setError("");
+    setEmptyField("");
 
     try {
       await api.login({ email, password });
@@ -40,29 +57,41 @@ export function AuthPage({ onAuth }: { onAuth: () => void }) {
             </div>
           </div>
 
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <label className="field">
-              <span>Email</span>
+          <form className="auth-form" onSubmit={handleSubmit} noValidate>
+            <label className={`field ${emptyField === "email" ? "has-validation-error" : ""}`}>
+              <span>Электронная почта</span>
               <div className="input-with-icon">
                 <Mail size={17} />
                 <input
                   type="email"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    if (emptyField === "email") {
+                      setEmptyField("");
+                    }
+                  }}
                   placeholder="Введите email"
                   autoComplete="email"
-                  required
+                  aria-invalid={emptyField === "email"}
                 />
               </div>
+              {emptyField === "email" && <span className="field-validation-bubble">Заполните это поле</span>}
             </label>
 
             <PasswordField
               label="Пароль"
               value={password}
-              onChange={setPassword}
+              onChange={(value) => {
+                setPassword(value);
+                if (emptyField === "password") {
+                  setEmptyField("");
+                }
+              }}
               placeholder="Введите пароль"
               autoComplete="current-password"
-              required
+              className={emptyField === "password" ? "has-validation-error" : ""}
+              validationMessage={emptyField === "password" ? "Заполните это поле" : ""}
             />
 
             <Alert tone="error">{error}</Alert>
@@ -77,7 +106,7 @@ export function AuthPage({ onAuth }: { onAuth: () => void }) {
         <div className="auth-visual" aria-label="Состояние аналитики">
           <div className="visual-header">
             <Activity size={18} />
-            <span>Monitoring</span>
+            <span>Мониторинг</span>
           </div>
           <div className="visual-lines">
             <span style={{ height: "36%" }} />

@@ -1,6 +1,5 @@
-﻿import { ChevronLeft, ChevronRight, Eye, Filter, RefreshCcw, Search, X } from "lucide-react";
+import { Ban, CalendarDays, ChevronLeft, ChevronRight, Eye, Filter, RefreshCcw, Search, X } from "lucide-react";
 import { LogDetailDrawer } from "../components/logs/LogDetailDrawer";
-import { Ban } from "lucide-react";
 import { Alert } from "../components/ui/Alert";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingBlock } from "../components/ui/LoadingBlock";
@@ -79,44 +78,50 @@ export function LogsPage() {
               onChange={(value) => logs.updateFilter("requestStatus", toNumbers(value))}
             />
 
-            <label className="field compact-field">
+            <label className="field compact-field date-field">
               <span>Дата от</span>
-              <input
-                type="date"
-                value={logs.filters.startDate}
-                onClick={(event) => openDatePicker(event.currentTarget)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    openDatePicker(event.currentTarget);
-                  }
-                }}
-                onChange={(event) => logs.updateFilter("startDate", event.target.value)}
-              />
+              <span className="date-input-control">
+                <CalendarDays size={16} aria-hidden="true" />
+                <input
+                  type="date"
+                  value={logs.filters.startDate}
+                  onClick={(event) => openDatePicker(event.currentTarget)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      openDatePicker(event.currentTarget);
+                    }
+                  }}
+                  onChange={(event) => logs.updateFilter("startDate", event.target.value)}
+                />
+              </span>
             </label>
 
-            <label className="field compact-field">
+            <label className="field compact-field date-field">
               <span>Дата до</span>
-              <input
-                type="date"
-                value={logs.filters.endDate}
-                onClick={(event) => openDatePicker(event.currentTarget)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    openDatePicker(event.currentTarget);
-                  }
-                }}
-                onChange={(event) => logs.updateFilter("endDate", event.target.value)}
-              />
+              <span className="date-input-control">
+                <CalendarDays size={16} aria-hidden="true" />
+                <input
+                  type="date"
+                  value={logs.filters.endDate}
+                  onClick={(event) => openDatePicker(event.currentTarget)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      openDatePicker(event.currentTarget);
+                    }
+                  }}
+                  onChange={(event) => logs.updateFilter("endDate", event.target.value)}
+                />
+              </span>
             </label>
 
             <button
               type="button"
               className={`button no-response-toggle${logs.filters.withoutResponse ? " active" : ""}`}
               aria-pressed={logs.filters.withoutResponse}
-              onClick={() => logs.updateFilter("withoutResponse", !logs.filters.withoutResponse)}
+              onClick={() => logs.applyWithoutResponseFilter(!logs.filters.withoutResponse)}
             >
               <Ban size={16} />
-              Без ответов
+              Без ответа
             </button>
 
             <button type="button" className="button primary" onClick={logs.applyFilters}>
@@ -186,8 +191,8 @@ export function LogsPage() {
         ) : logs.logs.length === 0 ? (
           <EmptyState text="Логи не найдены" />
         ) : (
-            <div className="table-scroll logs-table-scroll mobile-card-scroll">
-              <table className="data-table mobile-card-table logs-table">
+          <div className="table-scroll logs-table-scroll mobile-card-scroll">
+            <table className="data-table mobile-card-table logs-table">
               <thead>
                 <tr>
                   <th>ID</th>

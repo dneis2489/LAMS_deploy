@@ -121,6 +121,20 @@ export function useLogs() {
     setPage(1);
   }
 
+  function applyWithoutResponseFilter(value: boolean) {
+    const allowedActionIds = new Set(availableActions.map((item) => item.id));
+    const nextFilters = {
+      ...filters,
+      withoutResponse: value,
+      action: filters.action.filter((id) => allowedActionIds.has(id))
+    };
+
+    setFilters(nextFilters);
+    setQuerySmartSearch("");
+    setQueryFilters(nextFilters);
+    setPage(1);
+  }
+
   function resetFilters() {
     setFilters(emptyLogFilters);
     setQueryFilters(emptyLogFilters);
@@ -172,6 +186,7 @@ export function useLogs() {
     setSmartQuery,
     setMicroserviceFilter,
     applyFilters,
+    applyWithoutResponseFilter,
     applySmartSearch,
     resetFilters,
     openDetail,

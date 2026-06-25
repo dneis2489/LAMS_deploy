@@ -10,7 +10,7 @@ import { formatDateTime } from "../utils/format";
 import { roleLabel } from "../utils/roles";
 
 const searchModeOptions = [
-  { value: "email", label: "Email" },
+  { value: "email", label: "Электронная почта" },
   { value: "id", label: "ID" }
 ];
 
@@ -80,7 +80,7 @@ export function UsersAdminPage({ isAllowed }: { isAllowed: boolean }) {
   if (!isAllowed) {
     return (
       <section className="panel">
-        <EmptyState text="Раздел доступен только ROLE_SUPER_ADMIN" />
+        <EmptyState text="Раздел доступен только суперадминистратору" />
       </section>
     );
   }
@@ -121,7 +121,7 @@ export function UsersAdminPage({ isAllowed }: { isAllowed: boolean }) {
       <section className="panel users-admin-panel">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">ROLE_SUPER_ADMIN</p>
+            <p className="eyebrow">Суперадминистратор</p>
             <h2>Управление пользователями</h2>
           </div>
           <div className="users-admin-actions">
@@ -153,7 +153,7 @@ export function UsersAdminPage({ isAllowed }: { isAllowed: boolean }) {
                   type="search"
                   value={admin.searchValue}
                   onChange={(event) => admin.setSearchValue(event.target.value)}
-                  placeholder={admin.searchMode === "email" ? "email@example.com" : "UUID пользователя"}
+                  placeholder={admin.searchMode === "email" ? "email@example.com" : "ID пользователя"}
                 />
               </span>
               <button className="button primary smart-search-submit" type="submit" aria-label="Найти" title="Найти">
@@ -182,8 +182,8 @@ export function UsersAdminPage({ isAllowed }: { isAllowed: boolean }) {
             <table className="data-table users-table mobile-card-table">
               <thead>
                 <tr>
-                  <th>Email</th>
-                  <th>Username</th>
+                  <th>Электронная почта</th>
+                  <th>Имя пользователя</th>
                   <th>Роль</th>
                   <th>Активен</th>
                   <th>Создан</th>
@@ -193,8 +193,8 @@ export function UsersAdminPage({ isAllowed }: { isAllowed: boolean }) {
               <tbody>
                 {admin.users.map((user) => (
                   <tr key={user.id}>
-                    <td data-label="Email">{user.email}</td>
-                    <td data-label="Username">{user.username}</td>
+                    <td data-label="Электронная почта">{user.email}</td>
+                    <td data-label="Имя пользователя">{user.username}</td>
                     <td data-label="Роль">
                       <span className="role-chip">{roleLabel(user.role)}</span>
                     </td>
@@ -250,7 +250,7 @@ export function UsersAdminPage({ isAllowed }: { isAllowed: boolean }) {
 
             <form className="create-user-grid" onSubmit={handleCreate}>
               <label className="field">
-                <span>Email</span>
+                <span>Электронная почта</span>
                 <input
                   type="email"
                   value={admin.newUser.email}
@@ -259,7 +259,7 @@ export function UsersAdminPage({ isAllowed }: { isAllowed: boolean }) {
                 />
               </label>
               <label className="field">
-                <span>Username</span>
+                <span>Имя пользователя</span>
                 <input
                   value={admin.newUser.username}
                   onChange={(event) => admin.setNewUser((current) => ({ ...current, username: event.target.value }))}
@@ -319,7 +319,7 @@ export function UsersAdminPage({ isAllowed }: { isAllowed: boolean }) {
 
             <form className="edit-user-grid" onSubmit={handleEdit}>
               <label className="field">
-                <span>Email</span>
+                <span>Электронная почта</span>
                 <input
                   type="email"
                   value={admin.editForm.email}
@@ -328,7 +328,7 @@ export function UsersAdminPage({ isAllowed }: { isAllowed: boolean }) {
                 />
               </label>
               <label className="field">
-                <span>Username</span>
+                <span>Имя пользователя</span>
                 <input
                   value={admin.editForm.username}
                   onChange={(event) => admin.setEditForm((current) => ({ ...current, username: event.target.value }))}

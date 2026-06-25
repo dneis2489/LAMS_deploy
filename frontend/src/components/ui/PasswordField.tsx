@@ -12,6 +12,7 @@ type PasswordFieldProps = {
   disabled?: boolean;
   compact?: boolean;
   className?: string;
+  validationMessage?: string;
 };
 
 export function PasswordField({
@@ -25,6 +26,7 @@ export function PasswordField({
   disabled,
   compact,
   className = "",
+  validationMessage,
 }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
   const id = useId();
@@ -43,6 +45,7 @@ export function PasswordField({
         required={required}
         disabled={disabled}
         aria-label={label ? undefined : ariaLabel ?? placeholder}
+        aria-invalid={validationMessage ? true : undefined}
       />
       <button
         type="button"
@@ -68,6 +71,7 @@ export function PasswordField({
     <label className={`field ${classes}`} htmlFor={id}>
       <span>{label}</span>
       {control}
+      {validationMessage && <span className="field-validation-bubble">{validationMessage}</span>}
     </label>
   );
 }

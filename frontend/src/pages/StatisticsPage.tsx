@@ -1,5 +1,5 @@
 import { Activity, LineChart as LineChartIcon, RefreshCcw, SlidersHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LineChartPanel } from "../components/charts/LineChartPanel";
 import { Alert } from "../components/ui/Alert";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -22,7 +22,19 @@ type UniqueUsersTableProps = {
 
 function UniqueUsersTable({ title, subtitle, model, loading, period }: UniqueUsersTableProps) {
   const [selectedPeriod, setSelectedPeriod] = useState("");
-  const availablePeriods = [...new Set(model.data.map((point) => String(point.label ?? "—")))];
+  const availablePeriods = useMemo(() => {
+    const periods = new Map<string, number>();
+
+    model.data.forEach((point) => {
+      const label = String(point.label ?? "—");
+      const sort = Number(point.sort ?? 0);
+      periods.set(label, Math.max(periods.get(label) ?? Number.NEGATIVE_INFINITY, sort));
+    });
+
+    return [...periods.entries()]
+      .sort((left, right) => right[1] - left[1])
+      .map(([label]) => label);
+  }, [model.data]);
   const rows = model.data
     .filter((point) => !selectedPeriod || String(point.label ?? "—") === selectedPeriod)
     .flatMap((point) => {

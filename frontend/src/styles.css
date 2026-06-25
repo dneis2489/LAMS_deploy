@@ -231,6 +231,41 @@ button:disabled {
   flex: 0 0 auto;
 }
 
+.has-validation-error .input-with-icon,
+.has-validation-error .password-control {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.field-validation-bubble {
+  position: relative;
+  width: fit-content;
+  max-width: min(280px, 100%);
+  margin-top: 2px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #fff7f7;
+  color: #991b1b;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(153, 27, 27, 0.12);
+}
+
+.field-validation-bubble::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 16px;
+  width: 10px;
+  height: 10px;
+  border-top: 1px solid #fecaca;
+  border-left: 1px solid #fecaca;
+  background: #fff7f7;
+  transform: rotate(45deg);
+}
+
 .password-field {
   min-width: 0;
 }
@@ -729,6 +764,63 @@ button:disabled {
 
 .compact-field input {
   min-width: 0;
+  cursor: pointer;
+}
+
+.date-field {
+  min-width: 0;
+}
+
+.date-input-control {
+  position: relative;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  color: var(--ink);
+  padding: 0 12px;
+  cursor: pointer;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.date-input-control:hover {
+  border-color: #bfd0ff;
+  background: #fff;
+}
+
+.date-input-control:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.date-input-control svg {
+  color: var(--blue);
+  flex: 0 0 auto;
+}
+
+.date-input-control input,
+.date-input-control input:focus {
+  min-width: 0;
+  min-height: 40px;
+  flex: 1;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.date-input-control input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  opacity: 0;
   cursor: pointer;
 }
 
