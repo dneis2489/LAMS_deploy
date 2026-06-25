@@ -31,4 +31,16 @@ public class UniqueUsersForMethodStatDTO
     private List<String> users;
 
     private double predict;
+
+    public UniqueUsersForMethodStatDTO(
+            LocalDateTime date,
+            String microserviceName,
+            String actionName,
+            Long count,
+            List<String> users,
+            double predict
+    )
+    {
+        this(date, null, null, microserviceName, actionName, count, users, predict);
+    }
 }
