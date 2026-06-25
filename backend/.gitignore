@@ -1,0 +1,8 @@
+# Documentation and office files
+*.docx
+
+# Local secrets
+.env
+
+# Original rules preserved
+PROJECT_LISTING.md

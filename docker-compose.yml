@@ -1,0 +1,136 @@
+name: ${COMPOSE_PROJECT_NAME:-lams}
+
+services:
+  postgres:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: LAMS
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d LAMS"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD-SHELL", "cub zk-ready localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:29092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command:
+      - bash
+      - -c
+      - kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic lams.logs --partitions 1 --replication-factor 1
+
+  logstash:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.logstash
+    restart: unless-stopped
+    environment:
+      xpack.monitoring.enabled: "false"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      LAMS_LOGS_TOPIC: lams.logs
+      LAMS_LOGSTASH_GROUP_ID: lams-logstash
+      LAMS_DB_URL: jdbc:postgresql://postgres:5432/LAMS
+      LAMS_DB_USERNAME: postgres
+      LAMS_DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_JDBC_DRIVER_PATH: /usr/share/logstash/vendor/jar/jdbc/postgresql.jar
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/LAMS
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      SECURITY_JWT_SECRET: ${SECURITY_JWT_SECRET:?Set SECURITY_JWT_SECRET}
+      LAMS_AI_SMART_SEARCH_ENABLED: ${LAMS_AI_SMART_SEARCH_ENABLED:-false}
+      LAMS_AI_BASE_URL: http://disabled-local-ai:11434/v1
+      LAMS_AI_API_KEY: ${LAMS_AI_API_KEY:-}
+      LAMS_AI_MODEL: qwen2.5:7b
+      LAMS_AI_RESPONSE_FORMAT_ENABLED: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      logstash:
+        condition: service_started
+
+  log-generator:
+    build:
+      context: ./log-generator
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_TOPIC: lams.logs
+      KAFKA_CLIENT_ID: lams-log-generator
+      GENERATOR_MODE: ${GENERATOR_MODE:-continuous}
+      GENERATOR_INTERVAL_MS: ${GENERATOR_INTERVAL_MS:-1000}
+      GENERATOR_BURST_SIZE: ${GENERATOR_BURST_SIZE:-1}
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+      args:
+        API_BASE_URL: ${FRONTEND_API_BASE_URL:-}
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres_data:

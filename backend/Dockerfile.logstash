@@ -1,0 +1,9 @@
+FROM docker.elastic.co/logstash/logstash:8.11.0
+
+USER root
+ADD https://jdbc.postgresql.org/download/postgresql-42.7.4.jar /usr/share/logstash/vendor/jar/jdbc/postgresql.jar
+COPY logstash.conf /usr/share/logstash/pipeline/logstash.conf
+
+RUN chmod 0644 /usr/share/logstash/vendor/jar/jdbc/postgresql.jar
+USER logstash
+RUN logstash-plugin install --no-verify logstash-output-jdbc

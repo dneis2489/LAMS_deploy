@@ -1,0 +1,85 @@
+spring:
+  profiles:
+    active: @spring.profiles.active@
+  session:
+    jdbc:
+      initialize-schema: always
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format-sql: true
+  application:
+    name: LAMSv2
+
+security:
+  jwt:
+    secret: "${SECURITY_JWT_SECRET}"
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 2592000000
+
+holtwinters:
+  alpha: 0.45
+  beta: 0.15
+  gamma: 0.1
+
+lams:
+  notifications:
+    email:
+      enabled: ${LAMS_EMAIL_NOTIFICATIONS_ENABLED:false}
+      from: ${LAMS_EMAIL_FROM:no-reply@lams.local}
+    error-forecast-threshold: ${LAMS_ERROR_FORECAST_THRESHOLD:10}
+  ai:
+    smart-search:
+      enabled: ${LAMS_AI_SMART_SEARCH_ENABLED:false}
+      base-url: ${LAMS_AI_BASE_URL:http://localhost:11434/v1}
+      api-key: ${LAMS_AI_API_KEY:}
+      model: ${LAMS_AI_MODEL:qwen2.5:7b}
+      response-format-enabled: ${LAMS_AI_RESPONSE_FORMAT_ENABLED:false}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/LAMS}"
+    username: "${SPRING_DATASOURCE_USERNAME:postgres}"
+    password: "${SPRING_DATASOURCE_PASSWORD}"
+  mail:
+    host: ${LAMS_MAIL_HOST:localhost}
+    port: ${LAMS_MAIL_PORT:1025}
+    username: ${LAMS_MAIL_USERNAME:}
+    password: ${LAMS_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${LAMS_MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${LAMS_MAIL_SMTP_STARTTLS:false}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/LAMS}"
+    username: "${SPRING_DATASOURCE_USERNAME:postgres}"
+    password: "${SPRING_DATASOURCE_PASSWORD}"
+  mail:
+    host: ${LAMS_MAIL_HOST:localhost}
+    port: ${LAMS_MAIL_PORT:1025}
+    username: ${LAMS_MAIL_USERNAME:}
+    password: ${LAMS_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${LAMS_MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${LAMS_MAIL_SMTP_STARTTLS:false}

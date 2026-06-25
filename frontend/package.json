@@ -1,0 +1,28 @@
+{
+  "name": "lams-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "webpack serve --mode development --host 0.0.0.0 --port 3000",
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "recharts": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "css-loader": "latest",
+    "html-webpack-plugin": "latest",
+    "style-loader": "latest",
+    "ts-loader": "latest",
+    "typescript": "latest",
+    "webpack": "latest",
+    "webpack-cli": "latest",
+    "webpack-dev-server": "latest"
+  }
+}
