@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.pstu.lamsv2.dto.getDataInDB.logDTO.FullLogInfoDTO;
-import ru.pstu.lamsv2.dto.getDataInDB.logDTO.LogJSONInfoData;
 import ru.pstu.lamsv2.interfaces.logIntefaces.LogInfoRepositoryInterface;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
@@ -75,11 +75,11 @@ public class LogInfoRepository implements LogInfoRepositoryInterface
         });
     }
 
-    private LogJSONInfoData parseLogData(String jsonText)
+    private Map<String, Object> parseLogData(String jsonText)
     {
         try
         {
-            return objectMapper.readValue(jsonText, LogJSONInfoData.class);
+            return objectMapper.readValue(jsonText, new TypeReference<>() {});
         }
         catch (JsonProcessingException exception)
         {

@@ -85,12 +85,7 @@ export type LogListDTO = {
   logType: string;
 };
 
-export type LogJSONInfoData = {
-  phase: string;
-  message: string;
-  method_id: number;
-  service_id: number;
-};
+export type LogJSONInfoData = Record<string, unknown> | null;
 
 export type FullLogInfoDTO = LogListDTO & {
   json: LogJSONInfoData;

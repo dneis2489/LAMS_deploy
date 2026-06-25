@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
     DTO для получения полной информации о логе
@@ -31,7 +32,7 @@ public class FullLogInfoDTO
 
     private String logType;
 
-    public LogJSONInfoData json;
+    public Map<String, Object> json;
 
     private Integer duration;
 }
