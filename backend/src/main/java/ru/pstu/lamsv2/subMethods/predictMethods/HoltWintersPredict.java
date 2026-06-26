@@ -175,10 +175,15 @@ public class HoltWintersPredict implements PredictMethodInterface
 
             forecastList.add(new DataFormatFromPredictDTO(
                     forecastDate,
-                    result[i]
+                    normalizePrediction(result[i])
             ));
         }
 
         return forecastList;
+    }
+
+    private static double normalizePrediction(double value)
+    {
+        return value < 0 ? 0 : value;
     }
 }
